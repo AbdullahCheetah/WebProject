@@ -11,7 +11,7 @@ const AddDoctor = () => {
       e.preventDefault();
   
       try {
-        const response = await fetch('http://localhost:3030/admin/add', {
+        const response = await fetch('http://localhost:3030/recipient/add', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
