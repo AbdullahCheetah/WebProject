@@ -73,7 +73,6 @@ const RecipientDashboard = () => {
   };
 
   const handleUpdateDoctor = (doctor) => {
-    // Set the selected doctor and show the update modal
     setSelectedDoctor(doctor);
     setShowUpdateModal(true);
   };
@@ -101,7 +100,7 @@ const RecipientDashboard = () => {
 
     console.log('Doctor updated successfully:', selectedDoctor._id);
     setShowUpdateModal(false);
-    handleGetAllDoctors(); // Refresh the doctor list after updating one
+    handleGetAllDoctors();
   } catch (error) {
     console.error('Error updating doctor:', error.message);
   }
@@ -119,7 +118,7 @@ const RecipientDashboard = () => {
       }
 
       console.log('Doctor deleted successfully');
-      handleGetAllDoctors(); // Refresh the doctor list after deleting one
+      handleGetAllDoctors(); 
     } catch (error) {
       console.error('Error deleting doctor:', error.message);
     }
@@ -267,7 +266,7 @@ const RecipientDashboard = () => {
 )}
 
 
-      {/* Display All Doctors */}
+
       <div>
         <h2>All Doctors</h2>
         <ul>
