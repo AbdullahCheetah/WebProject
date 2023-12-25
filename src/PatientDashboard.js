@@ -83,8 +83,6 @@ const GetAllDoctor = () => {
       if (response.ok && data.Success) {
         console.log('Appointment requested successfully:', data.appointment);
   
-        localStorage.setItem('userId', data.rest._doc._id);
-        setUserId(data.rest._doc._id);
       } else {
         console.error('Error requesting appointment:', data.Message);
       }
