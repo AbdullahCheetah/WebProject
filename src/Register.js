@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate , Link} from 'react-router-dom';
 
 const Register = () => {
   const [name, setName] = useState('');
@@ -82,6 +82,15 @@ const Register = () => {
   };
 
   return (
+    <>
+    <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', backgroundColor: 'rgb(105, 113, 243)', marginBottom: '3px' }}>
+        <div>
+          <h3>Healthcare App</h3>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+           <Link to="/" style={{ color: 'black', textDecoration: 'none' }}>Login</Link>
+        </div>
+      </nav>
     <div style={styles.registrationContainer}>
       <h2>Registration Form</h2>
       <form onSubmit={handleSubmit} style={styles.registrationForm}>
@@ -125,6 +134,7 @@ const Register = () => {
         </button>
       </form>
     </div>
+    </>
   );
 };
 

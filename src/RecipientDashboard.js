@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const RecipientDashboard = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [specialist, setSpecialist] = useState('');
+  const specialistOptions = ['Cardiologist', 'Primary health care', 'Eye Specialist', 'Dentist', 'Surgeon', 'Neurologist'];
   const [availableDays, setAvailableDays] = useState('');
   const [availableTimeStart, setAvailableTimeStart] = useState('');
   const [availableTimeEnd, setAvailableTimeEnd] = useState('');
   const [doctors, setDoctors] = useState([]);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [Fees, setFees] = useState(''); // corrected variable name from 'Fees' to 'fees'
   const [error, setError] = useState('');
+  const [showAddDoctorPopup, setShowAddDoctorPopup] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -28,9 +32,11 @@ const RecipientDashboard = () => {
           email,
           password,
           role: 'doctor',
+          specialist,
           availableDays,
           availableTimeStart,
           availableTimeEnd,
+          Fees,
         }),
       });
 
@@ -50,7 +56,8 @@ const RecipientDashboard = () => {
         setAvailableDays('');
         setAvailableTimeStart('');
         setAvailableTimeEnd('');
-        handleGetAllDoctors(); // Refresh the doctor list after adding a new one
+        setFees('');
+        handleGetAllDoctors();
       }
     } catch (error) {
       console.error('Error adding Doctor:', error.message);
@@ -78,34 +85,35 @@ const RecipientDashboard = () => {
   };
 
   const handleUpdateSubmit = async () => {
-  try {
-    const response = await fetch(`http://localhost:3030/recipient/update/${selectedDoctor._id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: selectedDoctor.name,
-        email: selectedDoctor.email,
-        password: selectedDoctor.password,
-        availableDays: selectedDoctor.availableDays,
-        availableTimeStart: selectedDoctor.availableTimeStart,
-        availableTimeEnd: selectedDoctor.availableTimeEnd,
-      }),
-    });
+    try {
+      const response = await fetch(`http://localhost:3030/recipient/update/${selectedDoctor._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: selectedDoctor.name,
+          email: selectedDoctor.email,
+          password: selectedDoctor.password,
+          specialist: selectedDoctor.specialist,
+          availableDays: selectedDoctor.availableDays,
+          availableTimeStart: selectedDoctor.availableTimeStart,
+          availableTimeEnd: selectedDoctor.availableTimeEnd,
+          Fees,
+        }),
+      });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      console.log('Doctor updated successfully:', selectedDoctor._id);
+      setShowUpdateModal(false);
+      handleGetAllDoctors();
+    } catch (error) {
+      console.error('Error updating doctor:', error.message);
     }
-
-    console.log('Doctor updated successfully:', selectedDoctor._id);
-    setShowUpdateModal(false);
-    handleGetAllDoctors();
-  } catch (error) {
-    console.error('Error updating doctor:', error.message);
-  }
-};
-
+  };
 
   const handleDeleteDoctor = async (id) => {
     try {
@@ -118,7 +126,7 @@ const RecipientDashboard = () => {
       }
 
       console.log('Doctor deleted successfully');
-      handleGetAllDoctors(); 
+      handleGetAllDoctors();
     } catch (error) {
       console.error('Error deleting doctor:', error.message);
     }
@@ -128,158 +136,419 @@ const RecipientDashboard = () => {
     handleGetAllDoctors();
   }, []);
 
+  const handleAddDoctorClick = () => {
+    setShowAddDoctorPopup(true);
+  };
+  const handleAddButtonClick = () => {
+    setShowAddDoctorPopup(true);
+  };
+
+  const handleAddDoctorPopupClose = () => {
+    setShowAddDoctorPopup(false);
+  };
+
+  const styles = {
+    container: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      textAlign: 'center',
+      width: '100%',
+      margin: '0 auto', 
+    },
+    overlay: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    popup: {
+      position: 'relative',
+      padding: '20px',
+      width: '50vh',
+      boxShadow: '0 0 10px rgba(0, 0, 0, 0.2)',
+      backgroundColor: '#fff',
+      borderRadius: '10px',
+      overflowY: 'auto',
+      maxHeight: '90vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+    },
+    popupContent: {
+      textAlign: 'center',
+      marginBottom:'20px',
+    },
+    popupCloseButton: {
+      position: 'absolute',
+      top: '10px',
+      right: '10px',
+      cursor: 'pointer',
+      backgroundColor: 'rgb(251, 47, 54)',
+      color: 'white',
+      borderRadius: '10%',
+      border: 'none',
+      marginTop: '10px',
+      height: '25px',
+    },
+    tex:{
+      display: 'flex',
+      flexDirection: 'column',
+       textAlign:'left',
+       width:'100%',
+    },
+    doctorList: {
+      listStyle: 'none',
+      padding: 0,
+      margin: 0,
+      textAlign: 'left',
+      marginTop: '20px',
+      width: '700px',
+    },
+    doctorItem: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      marginBottom: '20px',
+      padding: '10px',
+      border: '1px solid #ddd',
+      borderRadius: '8px',
+      alignItems: 'center',
+      boxShadow: '0 0 10px rgba(0, 0, 0, 0.2)',
+    },
+    doctorDetails: {
+      flex: 1,
+      marginRight: '20px',
+    },
+    butto: {
+      display: 'flex',
+      flexDirection: 'column',
+    },
+    checkup: {
+      marginBottom: '10px',
+      backgroundColor: "rgb(199, 208, 252)",
+      borderRadius: '10px',
+      height: '30px',
+    },
+  };
+
+  const navStyles = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '10px',
+    backgroundColor: 'rgb(105, 113, 243)',
+    marginBottom: '3px',
+  };
+
+  const linkContainer = {
+    display: 'flex',
+    alignItems: 'center',
+  };
+
+  const linkStyles = {
+    color: 'black',
+    textDecoration: 'none',
+    marginLeft: '15px',
+    border: '1px solid black',
+    padding: '5px',
+    borderRadius: '5px',
+  };
+
+  const logoutLinkStyles = {
+    ...linkStyles,
+    border: '1px solid red',
+  };
+
+  const buttonlinkStyle = {
+    marginLeft: '88%',
+    border: '1px solid black',
+    padding: '5px',
+    width:'100px',
+    backgroundColor: "rgb(199, 208, 252)",
+    borderRadius: '10px',
+    height: '30px',
+  };
+
   return (
-    <div className="doctor-container">
-      <h2>Add Doctor</h2>
-      {error && <p className="error-message">{error}</p>}
-      <form onSubmit={handleSubmit} className="doctor-form">
-        <label>
-          Doctor Name:
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </label>
-        <br />
-        <label>
-          Doctor Email:
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </label>
-        <br />
-        <label>
-          Doctor Password:
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </label>
-        <br />
-        <label>
-          Available Days:
-          <input
-            type="text"
-            value={availableDays}
-            onChange={(e) => setAvailableDays(e.target.value)}
-            required
-          />
-        </label>
-        <br />
-        <label>
-          Available Start Time:
-          <input
-            type="text"
-            value={availableTimeStart}
-            onChange={(e) => setAvailableTimeStart(e.target.value)}
-            required
-          />
-        </label>
-        <br />
-        <label>
-          Available End Time:
-          <input
-            type="text"
-            value={availableTimeEnd}
-            onChange={(e) => setAvailableTimeEnd(e.target.value)}
-            required
-          />
-        </label>
-        <br />
-        <button type="submit">Add Doctor</button>
-      </form>
-
-      {showUpdateModal && selectedDoctor && (
-  <div className="update-modal">
-    <h2>Update Doctor</h2>
-    <form onSubmit={handleUpdateSubmit} className="doctor-form">
-      <label>
-        Doctor Name:
-        <input
-          type="text"
-          value={selectedDoctor.name}
-          onChange={(e) => setSelectedDoctor({ ...selectedDoctor, name: e.target.value })}
-          required
-        />
-      </label>
-      <br />
-      <label>
-        Doctor Email:
-        <input
-          type="email"
-          value={selectedDoctor.email}
-          onChange={(e) => setSelectedDoctor({ ...selectedDoctor, email: e.target.value })}
-          required
-        />
-      </label>
-      <br />
-      <label>
-        Doctor Password:
-        <input
-          type="password"
-          value={selectedDoctor.password}
-          onChange={(e) => setSelectedDoctor({ ...selectedDoctor, password: e.target.value })}
-          required
-        />
-      </label>
-      <br />
-      <label>
-        Available Days:
-        <input
-          type="text"
-          value={selectedDoctor.availableDays}
-          onChange={(e) => setSelectedDoctor({ ...selectedDoctor, availableDays: e.target.value })}
-          required
-        />
-      </label>
-      <br />
-      <label>
-        Available Start Time:
-        <input
-          type="text"
-          value={selectedDoctor.availableTimeStart}
-          onChange={(e) => setSelectedDoctor({ ...selectedDoctor, availableTimeStart: e.target.value })}
-          required
-        />
-      </label>
-      <br />
-      <label>
-        Available End Time:
-        <input
-          type="text"
-          value={selectedDoctor.availableTimeEnd}
-          onChange={(e) => setSelectedDoctor({ ...selectedDoctor, availableTimeEnd: e.target.value })}
-          required
-        />
-      </label>
-      <br />
-      <button type="submit">Update Doctor</button>
-    </form>
-  </div>
-)}
-
-
-
-      <div>
-        <h2>All Doctors</h2>
-        <ul>
-          {doctors.map((doctor) => (
-            <li key={doctor._id}>
-              {doctor.name} - {doctor.email}
-              <button onClick={() => handleUpdateDoctor(doctor)}>Update</button>
-              <button onClick={() => handleDeleteDoctor(doctor._id)}>Delete</button>
-            </li>
-          ))}
-        </ul>
+    <div>
+      <nav style={navStyles}>
+        <div>
+          <h3>Healthcare App</h3>
+        </div>
+        <div style={linkContainer}>
+          <Link to="/recipient" style={linkStyles}>
+            Doctors
+          </Link>
+          <Link to="/appointments" style={linkStyles}>
+            Appointments
+          </Link>
+          <Link to="/" style={logoutLinkStyles}>
+            Logout
+          </Link>
+        </div>
+      </nav>
+      <button style={buttonlinkStyle} onClick={handleAddButtonClick}>
+            Add Doctor
+          </button>
+          {showAddDoctorPopup && (
+      <div style={styles.overlay}>
+        <div style={styles.popup}>
+          <button style={styles.popupCloseButton} onClick={handleAddDoctorPopupClose}>
+            Close
+          </button>
+          <h2>Add Doctor</h2>
+          <form onSubmit={handleSubmit} className="doctor-form">
+          <div style={styles.tex}>
+            <label>
+              Doctor Name:
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </label>
+            <br />
+          <label>
+            Doctor Email:
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </label>
+          <br />
+          <label>
+            Doctor Password:
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </label>
+          <br />
+          <label>
+            Specialist:
+            <select
+              value={specialist}
+              onChange={(e) => setSpecialist(e.target.value)}
+              required
+            >
+              <option value="" disabled>Select Specialist</option>
+              {specialistOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </label>
+          <br />
+          <label>
+            Available Days:
+            <input
+              type="text"
+              value={availableDays}
+              onChange={(e) => setAvailableDays(e.target.value)}
+              required
+            />
+          </label>
+          <br />
+          <label>
+            Available Start Time:
+            <input
+              type="text"
+              value={availableTimeStart}
+              onChange={(e) => setAvailableTimeStart(e.target.value)}
+              required
+            />
+          </label>
+          <br />
+          <label>
+            Available End Time:
+            <input
+              type="text"
+              value={availableTimeEnd}
+              onChange={(e) => setAvailableTimeEnd(e.target.value)}
+              required
+            />
+          </label>
+          <br />
+          <label>
+            Fees:
+            <input
+              type="text"
+              value={Fees}
+              onChange={(e) => setFees(e.target.value)}
+              required
+            />
+          </label>
+          <br />
+          </div>
+          <button type="submit"  style={{ backgroundColor: 'rgb(47, 251, 81)', height: '30px', borderRadius:'10px', }}>Add Doctor</button>
+          </form>
+        </div>
       </div>
-    </div>
+    )}
+
+        {showUpdateModal && selectedDoctor && (
+          <div style={styles.overlay}>
+          <div style={styles.popup}>
+            <button style={styles.popupCloseButton} onClick={() => setShowUpdateModal(false)}>
+              Close
+            </button>
+            <h2>Update Doctor</h2>
+            <form onSubmit={handleUpdateSubmit} className="doctor-form">
+            <div style={styles.tex}>
+              <label>
+                Doctor Name:
+                <input
+                  type="text"
+                  value={selectedDoctor.name}
+                  onChange={(e) =>
+                    setSelectedDoctor({ ...selectedDoctor, name: e.target.value })
+                  }
+                  required
+                />
+              </label>
+              <br />
+              <label>
+                Doctor Email:
+                <input
+                  type="email"
+                  value={selectedDoctor.email}
+                  onChange={(e) =>
+                    setSelectedDoctor({ ...selectedDoctor, email: e.target.value })
+                  }
+                  required
+                />
+              </label>
+              <br />
+              <label>
+                Doctor Password:
+                <input
+                  type="password"
+                  value={selectedDoctor.password}
+                  onChange={(e) =>
+                    setSelectedDoctor({ ...selectedDoctor, password: e.target.value })
+                  }
+                  required
+                />
+              </label>
+              <br />
+              <label>
+                Specialist:
+                <select
+                  value={selectedDoctor.specialist}
+                  onChange={(e) =>
+                    setSelectedDoctor({
+                      ...selectedDoctor,
+                      specialist: e.target.value,
+                    })
+                  }
+                  required
+                >
+                  <option value="" disabled>
+                    Select Specialist
+                  </option>
+                  {specialistOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <br />
+              <label>
+                Available Days:
+                <input
+                  type="text"
+                  value={selectedDoctor.availableDays}
+                  onChange={(e) =>
+                    setSelectedDoctor({
+                      ...selectedDoctor,
+                      availableDays: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </label>
+              <br />
+              <label>
+                Available Start Time:
+                <input
+                  type="text"
+                  value={selectedDoctor.availableTimeStart}
+                  onChange={(e) =>
+                    setSelectedDoctor({
+                      ...selectedDoctor,
+                      availableTimeStart: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </label>
+              <br />
+              <label>
+                Available End Time:
+                <input
+                  type="text"
+                  value={selectedDoctor.availableTimeEnd}
+                  onChange={(e) =>
+                    setSelectedDoctor({
+                      ...selectedDoctor,
+                      availableTimeEnd: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </label>
+              <br />
+              <label>
+                Fees:
+                <input
+                  type="text"
+                  value={Fees}
+                  onChange={(e) => setFees(e.target.value)}
+                  required
+                />
+              </label>
+              <br />
+              </div>
+              <button type="submit" style={{ backgroundColor: 'rgb(47, 251, 81)', height: '30px', borderRadius:'10px'}}>Update Doctor</button>
+              </form>
+        </div>
+      </div>
+    )}
+
+        <div style={styles.container}>
+          <div>
+            <h2>All Doctors</h2>
+            {error && <p>Error: {error}</p>}
+            <ul style={styles.doctorList}>
+              {doctors.map((doctor) => (
+                <li key={doctor._id} style={styles.doctorItem}>
+                  <div style={styles.doctorDetails}>
+                    <p style={{ fontWeight: 'bold' }}>Doctor Name: {doctor.name}</p>
+                    <p>Email: {doctor.email}</p>
+                  </div>
+                  <div style={styles.butto}>
+                    <button style={styles.checkup} onClick={() => handleUpdateDoctor(doctor)}>Update</button>
+                    <button style={styles.checkup} onClick={() => handleDeleteDoctor(doctor._id)}>Delete</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    
   );
 };
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate , Link } from 'react-router-dom';
 
 const Login = () => {
   const [token, setToken] = useState('');
@@ -73,7 +73,7 @@ const Login = () => {
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      height: '100vh',
+      height: '80vh',
       backgroundColor: '#f7f7f7',
     },
     loginForm: {
@@ -119,6 +119,15 @@ const Login = () => {
   };
 
   return (
+    <>
+    <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', backgroundColor: 'rgb(105, 113, 243)', marginBottom: '3px' }}>
+        <div>
+          <h3>Healthcare App</h3>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+           <Link to="/register" style={{ color: 'black', textDecoration: 'none' }}>Register</Link>
+        </div>
+      </nav>
     <div style={styles.loginContainer}>
       <div style={styles.loginForm}>
         <h2>Login</h2>
@@ -156,6 +165,7 @@ const Login = () => {
         </form>
       </div>
     </div>
+    </>
   );
 };
 
